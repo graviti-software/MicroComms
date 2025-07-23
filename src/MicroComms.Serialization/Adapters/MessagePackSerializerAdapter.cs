@@ -6,7 +6,7 @@ namespace MicroComms.Serialization.Adapters;
 
 public class MessagePackSerializerAdapter : ISerializer
 {
-    // Use the contract‐less resolver that also allows private members:
+    // Use the contract-less resolver that also allows private members:
     private static readonly MessagePackSerializerOptions Options =
         MessagePackSerializerOptions.Standard
             .WithResolver(ContractlessStandardResolverAllowPrivate.Instance);
