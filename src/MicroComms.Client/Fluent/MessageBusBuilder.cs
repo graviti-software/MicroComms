@@ -38,6 +38,10 @@ public class MessageBusBuilder
     /// <summary>Override the default logger (otherwise a no-op NullLogger is used).</summary>
     public MessageBusBuilder WithLogger(ILogger logger)
     {
+        if (logger == null)
+        {
+            throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
+        }
         _logger = logger;
         return this;
     }
