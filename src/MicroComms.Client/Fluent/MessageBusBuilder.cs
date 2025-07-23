@@ -38,11 +38,7 @@ public class MessageBusBuilder
     /// <summary>Override the default logger (otherwise a no-op NullLogger is used).</summary>
     public MessageBusBuilder WithLogger(ILogger logger)
     {
-        if (logger == null)
-        {
-            throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
-        }
-        _logger = logger;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
         return this;
     }
 
@@ -86,7 +82,7 @@ public class MessageBusBuilder
     }
 
     /// <summary>Builds and returns the configured IMessageBus.</summary>
-    public IMessageBus Build()
+    public async Task<IMessageBus> BuildAsync()
     {
         if (_endpoint is null)
         {
