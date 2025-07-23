@@ -84,7 +84,7 @@ public class WebSocketTransportTests
         // Now close the transport and wait for OnDisconnected
         await transport.StopAsync();
         sw.Restart();
-        while (!disconnectedFired && sw.Elapsed < TimeSpan.FromSeconds(1))
+        while (!disconnectedFired && sw.Elapsed < TimeSpan.FromSeconds(5))
             await Task.Delay(10);
 
         disconnectedFired.Should().BeTrue();

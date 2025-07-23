@@ -32,3 +32,10 @@ jobs:
               --configuration Release \
               --collect:"XPlat Code Coverage" \
               --results-directory ./TestResults
+
+      - name: Upload TestResults
+        if: always()                  # run even if tests failed
+        uses: actions/upload-artifact@v3
+        with:
+            name: TestResults
+            path: ./TestResults
