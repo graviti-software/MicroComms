@@ -11,11 +11,18 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
     private readonly Uri _endpoint = endpoint;
     private readonly ClientWebSocket _socket = new();
 
+    public Uri Endpoint => _endpoint;
+
     public event Func<byte[], Task> OnMessageReceived = _ => Task.CompletedTask;
 
-    public async Task ConnectAsync(Uri endpoint, CancellationToken cancellationToken = default)
+    public event Action? OnConnected;
+
+    public event Action? OnDisconnected;
+
+    public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         await _socket.ConnectAsync(_endpoint, cancellationToken);
+        OnConnected?.Invoke();
         _ = Task.Run(() => ReceiveLoop(cancellationToken), cancellationToken);
     }
 
@@ -25,20 +32,22 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
     public Task StopAsync(CancellationToken cancellationToken = default)
         => _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
 
-    private async Task ReceiveLoop(CancellationToken cancellationToken)
+    private async Task ReceiveLoop(CancellationToken ct)
     {
         var buffer = new byte[4096];
-        while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+        while (_socket.State == WebSocketState.Open && !ct.IsCancellationRequested)
         {
             using var ms = new MemoryStream();
-            WebSocketReceiveResult result;
+            WebSocketReceiveResult res;
             do
             {
-                result = await _socket.ReceiveAsync(buffer, cancellationToken);
-                await ms.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
-            } while (!result.EndOfMessage);
+                res = await _socket.ReceiveAsync(buffer, ct);
+                await ms.WriteAsync(buffer.AsMemory(0, res.Count), ct);
+            } while (!res.EndOfMessage);
 
             await OnMessageReceived(ms.ToArray());
         }
+
+        OnDisconnected?.Invoke();
     }
 }
