@@ -45,6 +45,10 @@ public class MessageBusBuilder
     /// <summary>Customize the reconnect back-off in milliseconds (default: 2000).</summary>
     public MessageBusBuilder WithReconnectDelay(int milliseconds)
     {
+        if (milliseconds <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(milliseconds), "Reconnect delay must be greater than zero.");
+        }
         _reconnectDelay = milliseconds;
         return this;
     }
