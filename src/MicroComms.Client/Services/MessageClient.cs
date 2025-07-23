@@ -2,6 +2,7 @@
 using MicroComms.Core.Abstractions;
 using MicroComms.Transport;
 using MicroComms.Transport.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
 namespace MicroComms.Client.Services;
@@ -10,6 +11,7 @@ public class MessageClient : IMessageBus
 {
     private readonly IWebSocketTransport _transport;
     private readonly ISerializer _serializer;
+    private readonly ILogger _logger;
     private readonly List<IMessageInterceptor> _interceptors = [];
     private readonly ConcurrentDictionary<string, List<Func<object, Task>>> _handlers = [];
 
@@ -24,7 +26,7 @@ public class MessageClient : IMessageBus
 
     public event Action? Reconnecting;
 
-    public MessageClient(IWebSocketTransport transport, ISerializer serializer)
+    public MessageClient(IWebSocketTransport transport, ISerializer serializer, ILogger logger)
     {
         // capture endpoint for reconnect
         if (transport is ClientTransport ct)
@@ -32,22 +34,32 @@ public class MessageClient : IMessageBus
 
         _transport = transport;
         _serializer = serializer;
+        _logger = logger;
 
         // wire lifecycle
         _transport.OnConnected += () => Connected?.Invoke();
-        _transport.OnDisconnected += async () =>
+
+        _transport.OnDisconnected += async () => await HandleDisconnectionAsync();
+
+        _transport.OnMessageReceived += HandleRawMessageAsync;
+    }
+
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "No need, used in logging")]
+    private async Task HandleDisconnectionAsync()
+    {
+        try
         {
             Disconnected?.Invoke();
             Reconnecting?.Invoke();
-
             // simple backoff/reconnect
             await Task.Delay(TimeSpan.FromSeconds(2));
-            if (_endpoint == null)
-                throw new InvalidOperationException("Reconnection failed: _endpoint is null. Ensure the transport is of type ClientTransport.");
             await _transport.ConnectAsync(_endpoint);
-        };
-
-        _transport.OnMessageReceived += HandleRawMessageAsync;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during reconnection attempt.");
+            throw;
+        }
     }
 
     public void UseInterceptor(IMessageInterceptor interceptor)
