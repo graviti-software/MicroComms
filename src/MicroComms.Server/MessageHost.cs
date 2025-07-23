@@ -22,7 +22,7 @@ public class MessageHost : IDisposable
 
     private readonly HttpListener _listener;
     private readonly ISerializer _serializer;
-    private readonly List<IMessageInterceptor> _interceptors = new();
+    private readonly List<IMessageInterceptor> _interceptors = [];
 
     private readonly ConcurrentDictionary<string, List<Func<object, Task>>> _handlers
         = new();
