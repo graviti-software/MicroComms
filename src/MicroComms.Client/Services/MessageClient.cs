@@ -1,5 +1,6 @@
 ﻿using MicroComms.Client.Models;
 using MicroComms.Core.Abstractions;
+using MicroComms.Transport;
 using MicroComms.Transport.Abstractions;
 using System.Collections.Concurrent;
 
@@ -15,10 +16,35 @@ public class MessageClient : IMessageBus
     // Tracks in-flight requests by message Id
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Ack>> _pending = [];
 
+    private readonly Uri _endpoint;
+
+    public event Action? Connected;
+
+    public event Action? Disconnected;
+
+    public event Action? Reconnecting;
+
     public MessageClient(IWebSocketTransport transport, ISerializer serializer)
     {
+        // capture endpoint for reconnect
+        if (transport is ClientTransport ct)
+            _endpoint = ct.Endpoint;
+
         _transport = transport;
         _serializer = serializer;
+
+        // wire lifecycle
+        _transport.OnConnected += () => Connected?.Invoke();
+        _transport.OnDisconnected += async () =>
+        {
+            Disconnected?.Invoke();
+            Reconnecting?.Invoke();
+
+            // simple backoff/reconnect
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            await _transport.ConnectAsync(_endpoint);
+        };
+
         _transport.OnMessageReceived += HandleRawMessageAsync;
     }
 

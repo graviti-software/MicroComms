@@ -3,14 +3,27 @@ using System.Net.WebSockets;
 
 namespace MicroComms.Server;
 
-internal class ServerWebSocketTransport(WebSocket socket) : IWebSocketTransport
+internal class ServerWebSocketTransport : IWebSocketTransport
 {
-    private readonly WebSocket _socket = socket;
+    private readonly WebSocket _socket;
 
+    // the existing event
     public event Func<byte[], Task> OnMessageReceived = _ => Task.CompletedTask;
 
+    // ← add these two:
+    public event Action? OnConnected;
+
+    public event Action? OnDisconnected;
+
+    public ServerWebSocketTransport(WebSocket socket)
+    {
+        _socket = socket;
+        // fire connected immediately since this ctor runs after AcceptWebSocketAsync
+        OnConnected?.Invoke();
+    }
+
     public Task ConnectAsync(Uri _, CancellationToken __ = default)
-        => Task.CompletedTask; // already connected
+        => Task.CompletedTask; // already “connected”
 
     public Task SendAsync(byte[] data, CancellationToken ct = default)
         => _socket.SendAsync(data, WebSocketMessageType.Binary, true, ct);
@@ -33,5 +46,8 @@ internal class ServerWebSocketTransport(WebSocket socket) : IWebSocketTransport
 
             await OnMessageReceived(ms.ToArray());
         }
+
+        // when loop exits, signal disconnect
+        OnDisconnected?.Invoke();
     }
 }
