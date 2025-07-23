@@ -78,6 +78,10 @@ public class MessageBusBuilder
     /// <summary>Register a handler for the Disconnected event.</summary>
     public MessageBusBuilder OnDisconnected(Action handler)
     {
+        if (handler == null)
+        {
+            throw new ArgumentNullException(nameof(handler), "Handler cannot be null.");
+        }
         _onDisconnectedHandlers.Add(handler);
         return this;
     }
