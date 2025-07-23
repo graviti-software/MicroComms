@@ -198,7 +198,7 @@ public class MessageClientTests
             return Task.CompletedTask;
         });
 
-        // Build a wire‐frame for TestMessage
+        // Build a wire-frame for TestMessage
         var frame = new MessageFrame
         {
             Id = Guid.NewGuid(),
