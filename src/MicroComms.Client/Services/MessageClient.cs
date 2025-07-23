@@ -42,6 +42,8 @@ public class MessageClient : IMessageBus
 
             // simple backoff/reconnect
             await Task.Delay(TimeSpan.FromSeconds(2));
+            if (_endpoint == null)
+                throw new InvalidOperationException("Reconnection failed: _endpoint is null. Ensure the transport is of type ClientTransport.");
             await _transport.ConnectAsync(_endpoint);
         };
 
