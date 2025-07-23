@@ -52,7 +52,7 @@ public class MessageClient : IMessageBus
             Disconnected?.Invoke();
             Reconnecting?.Invoke();
             // simple backoff/reconnect
-            await Task.Delay(TimeSpan.FromSeconds(2));
+            await Task.Delay(ReconnectDelay);
             await _transport.ConnectAsync(_endpoint);
         }
         catch (Exception ex)
