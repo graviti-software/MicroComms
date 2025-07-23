@@ -24,3 +24,10 @@ jobs:
 
       - name: Build solution
         run: dotnet build MicroComms.sln --no-restore --configuration Release
+      
+      - name: Test with coverage
+        run: dotnet test MicroComms.sln \
+             --no-build \
+             --configuration Release \
+             --collect:"XPlat Code Coverage" \
+             --results-directory ./TestResults
