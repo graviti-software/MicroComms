@@ -35,7 +35,7 @@ jobs:
 
       - name: Upload TestResults
         if: always()                  # run even if tests failed
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
             name: TestResults
             path: ./TestResults
