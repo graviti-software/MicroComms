@@ -129,6 +129,6 @@ public class MessageBusBuilder
     /// <summary>Builds and returns the configured IMessageBus synchronously.</summary>
     public IMessageBus Build()
     {
-        return BuildAsync().GetAwaiter().GetResult();
+        return BuildAsync().ConfigureAwait(false).GetAwaiter().GetResult();
     }
 }
