@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroComms.Client", "src\Mi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroComms.Server", "src\MicroComms.Server\MicroComms.Server.csproj", "{EFD59F2C-131B-4973-875D-23F02848937F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,6 +44,13 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C49D36E0-952B-44DD-BBC2-9F626BB8B651} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{3500E0A1-11A4-482A-B5CC-B7EFF304DBC6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{D9C3A05C-9C1B-4536-B652-13134F729C0D} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{DBF94C85-C1C5-48C6-B757-B7FAF021AAE6} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{EFD59F2C-131B-4973-875D-23F02848937F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93F029C1-2028-41D4-B42F-30FEEEDE9F2F}
