@@ -89,6 +89,10 @@ public class MessageBusBuilder
     /// <summary>Register a handler for the Reconnecting event.</summary>
     public MessageBusBuilder OnReconnecting(Action handler)
     {
+        if (handler == null)
+        {
+            throw new ArgumentNullException(nameof(handler), "Handler cannot be null.");
+        }
         _onReconnectingHandlers.Add(handler);
         return this;
     }
