@@ -1,6 +1,5 @@
 ﻿using MicroComms.Client.Models;
 using MicroComms.Core.Abstractions;
-using MicroComms.Transport;
 using MicroComms.Transport.Abstractions;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
@@ -18,7 +17,6 @@ public class MessageClient : IMessageBus
     // Tracks in-flight requests by message Id
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Ack>> _pending = [];
 
-    private readonly Uri _endpoint;
     private readonly int _reconnectDelay;
 
     public event Action? Connected;
@@ -29,16 +27,6 @@ public class MessageClient : IMessageBus
 
     public MessageClient(IWebSocketTransport transport, ISerializer serializer, ILogger logger, int reconnectDelay)
     {
-        // capture endpoint for reconnect
-        if (transport is ClientTransport ct)
-        {
-            _endpoint = ct.Endpoint;
-        }
-        else
-        {
-            throw new ArgumentException("Transport must be of type ClientTransport to access endpoint.", nameof(transport));
-        }
-
         _transport = transport;
         _serializer = serializer;
         _logger = logger;
@@ -61,7 +49,7 @@ public class MessageClient : IMessageBus
             Reconnecting?.Invoke();
             // simple backoff/reconnect
             await Task.Delay(_reconnectDelay);
-            await _transport.ConnectAsync(_endpoint);
+            await _transport.ConnectAsync();
         }
         catch (Exception ex)
         {

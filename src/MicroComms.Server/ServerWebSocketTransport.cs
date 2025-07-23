@@ -22,7 +22,7 @@ internal class ServerWebSocketTransport : IWebSocketTransport
         OnConnected?.Invoke();
     }
 
-    public Task ConnectAsync(Uri _, CancellationToken __ = default)
+    public Task ConnectAsync(CancellationToken __ = default)
         => Task.CompletedTask; // already “connected”
 
     public Task SendAsync(byte[] data, CancellationToken ct = default)

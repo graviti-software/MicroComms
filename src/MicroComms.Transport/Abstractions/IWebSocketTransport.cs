@@ -6,7 +6,7 @@
 public interface IWebSocketTransport
 {
     /// <summary>Connect to the remote endpoint.</summary>
-    Task ConnectAsync(Uri endpoint, CancellationToken cancellationToken = default);
+    Task ConnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Send raw bytes.</summary>
     Task SendAsync(byte[] data, CancellationToken cancellationToken = default);
