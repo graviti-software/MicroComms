@@ -46,7 +46,7 @@ public class MessageHostTests
         var client = new MessageClient(
             transport,
             new MessagePackSerializerAdapter(),
-            // use null‐logger to satisfy ctor
+            // use null-logger to satisfy ctor
             Microsoft.Extensions.Logging.Abstractions.NullLogger<MessageClient>.Instance,
             reconnectDelay: 0
         );
