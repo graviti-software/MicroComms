@@ -19,7 +19,7 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
 
     public event Action? OnDisconnected;
 
-    public async Task ConnectAsync(Uri endpoint, CancellationToken cancellationToken = default)
+    public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         await _socket.ConnectAsync(_endpoint, cancellationToken);
         OnConnected?.Invoke();
