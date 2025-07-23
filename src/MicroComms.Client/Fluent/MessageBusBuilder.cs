@@ -67,6 +67,10 @@ public class MessageBusBuilder
     /// <summary>Register a handler for the Connected event.</summary>
     public MessageBusBuilder OnConnected(Action handler)
     {
+        if (handler == null)
+        {
+            throw new ArgumentNullException(nameof(handler), "Handler cannot be null.");
+        }
         _onConnectedHandlers.Add(handler);
         return this;
     }
