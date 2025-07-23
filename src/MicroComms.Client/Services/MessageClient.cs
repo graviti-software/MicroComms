@@ -19,6 +19,7 @@ public class MessageClient : IMessageBus
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Ack>> _pending = [];
 
     private readonly Uri _endpoint;
+    private readonly int _reconnectDelay;
 
     public event Action? Connected;
 
@@ -26,11 +27,17 @@ public class MessageClient : IMessageBus
 
     public event Action? Reconnecting;
 
-    public MessageClient(IWebSocketTransport transport, ISerializer serializer, ILogger logger)
+    public MessageClient(IWebSocketTransport transport, ISerializer serializer, ILogger logger, int reconnectDelay)
     {
         // capture endpoint for reconnect
         if (transport is ClientTransport ct)
+        {
             _endpoint = ct.Endpoint;
+        }
+        else
+        {
+            throw new ArgumentException("Transport must be of type ClientTransport to access endpoint.", nameof(transport));
+        }
 
         _transport = transport;
         _serializer = serializer;
@@ -42,6 +49,7 @@ public class MessageClient : IMessageBus
         _transport.OnDisconnected += async () => await HandleDisconnectionAsync();
 
         _transport.OnMessageReceived += HandleRawMessageAsync;
+        _reconnectDelay = reconnectDelay;
     }
 
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "No need, used in logging")]
@@ -52,7 +60,7 @@ public class MessageClient : IMessageBus
             Disconnected?.Invoke();
             Reconnecting?.Invoke();
             // simple backoff/reconnect
-            await Task.Delay(ReconnectDelay);
+            await Task.Delay(_reconnectDelay);
             await _transport.ConnectAsync(_endpoint);
         }
         catch (Exception ex)
