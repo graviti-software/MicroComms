@@ -56,6 +56,10 @@ public class MessageBusBuilder
     /// <summary>Add an interceptor (logging, auth, etc.).</summary>
     public MessageBusBuilder AddInterceptor(IMessageInterceptor interceptor)
     {
+        if (interceptor == null)
+        {
+            throw new ArgumentNullException(nameof(interceptor), "Interceptor cannot be null.");
+        }
         _interceptors.Add(interceptor);
         return this;
     }
