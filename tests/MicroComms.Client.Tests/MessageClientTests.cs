@@ -164,4 +164,54 @@ public class MessageClientTests
         var result = await pending;
         result.StatusCode.Should().Be(200);
     }
+
+    [Fact]
+    public async Task Interceptor_OnReceived_IsCalledBeforeHandler()
+    {
+        // Arrange
+        var transport = new FakeTransport();
+        var serializer = new MessagePackSerializerAdapter();
+        var client = new MessageClient(
+            transport,
+            serializer,
+            NullLogger<MessageClient>.Instance,
+            reconnectDelay: 0
+        );
+
+        bool sawInterceptor = false;
+        bool sawHandler = false;
+
+        // Interceptor sets sawInterceptor
+        client.UseInterceptor(new InlineInterceptor
+        {
+            OnReceived = env =>
+            {
+                sawInterceptor = true;
+                return Task.CompletedTask;
+            }
+        });
+
+        // Subscriber will only flip sawHandler if interceptor already ran
+        client.Subscribe<TestMessage>(msg =>
+        {
+            sawHandler = sawInterceptor;
+            return Task.CompletedTask;
+        });
+
+        // Build a wire‐frame for TestMessage
+        var frame = new MessageFrame
+        {
+            Id = Guid.NewGuid(),
+            Type = typeof(TestMessage).AssemblyQualifiedName!,
+            Payload = serializer.Serialize(new TestMessage { Value = 999 })
+        };
+        var raw = serializer.Serialize(frame);
+
+        // Act: simulate incoming bytes
+        await transport.RaiseMessageReceived(raw);
+
+        // Assert
+        sawInterceptor.Should().BeTrue("the OnReceived interceptor should have run");
+        sawHandler.Should().BeTrue("the handler should see that the interceptor already ran");
+    }
 }

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <!-- the “XPlat code coverage” collector is from coverlet.collector -->
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <!-- output in cobertura XML format -->
+          <Format>cobertura</Format>
+          <!-- exclude your test assemblies themselves from coverage -->
+          <ExcludeByFile>**/*Tests/*.cs</ExcludeByFile>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
