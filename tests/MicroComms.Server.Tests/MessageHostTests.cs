@@ -66,9 +66,19 @@ public class MessageHostTests
         ackResult.Should().NotBeNull();
         ackResult!.StatusCode.Should().Be(200);
 
-        // Cleanup
+        // Cleanup: close the client first
         await cts.CancelAsync();
-        await transport.StopAsync();
+        try
+        {
+            await transport.StopAsync();
+
+            // then stop the host listener so StartAsync returns
+            await host.StopAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            // ignore if the server already dropped the socket
+        }
     }
 
     // Simple DTO

@@ -216,7 +216,7 @@ var assemblies = [
       { "name": "MicroComms.Client.Fluent.MessageBusBuilder", "rp": "MicroComms.Client_MessageBusBuilder.html", "cl": 0, "ucl": 73, "cal": 73, "tl": 134, "cb": 0, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MicroComms.Client.Models.MessageEnvelope", "rp": "MicroComms.Client_MessageEnvelope.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 17, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
       { "name": "MicroComms.Client.Models.MessageFrame", "rp": "MicroComms.Client_MessageFrame.html", "cl": 3, "ucl": 0, "cal": 3, "tl": 17, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
-      { "name": "MicroComms.Client.Services.MessageClient", "rp": "MicroComms.Client_MessageClient.html", "cl": 85, "ucl": 16, "cal": 101, "tl": 169, "cb": 13, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MicroComms.Client.Services.MessageClient", "rp": "MicroComms.Client_MessageClient.html", "cl": 86, "ucl": 15, "cal": 101, "tl": 169, "cb": 15, "tb": 22, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
     "name": "MicroComms.Core",
@@ -230,9 +230,15 @@ var assemblies = [
       { "name": "MicroComms.Serialization.Adapters.MessagePackSerializerAdapter", "rp": "MicroComms.Serialization_MessagePackSerializerAdapter.html", "cl": 6, "ucl": 0, "cal": 6, "tl": 22, "cb": 0, "tb": 0, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
   {
+    "name": "MicroComms.Server",
+    "classes": [
+      { "name": "MicroComms.Server.MessageHost", "rp": "MicroComms.Server_MessageHost.html", "cl": 78, "ucl": 23, "cal": 101, "tl": 177, "cb": 9, "tb": 16, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MicroComms.Server.ServerWebSocketTransport", "rp": "MicroComms.Server_ServerWebSocketTransport.html", "cl": 18, "ucl": 4, "cal": 22, "tl": 53, "cb": 5, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+    ]},
+  {
     "name": "MicroComms.Transport",
     "classes": [
-      { "name": "MicroComms.Transport.ClientTransport", "rp": "MicroComms.Transport_ClientTransport.html", "cl": 0, "ucl": 25, "cal": 25, "tl": 53, "cb": 0, "tb": 10, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
+      { "name": "MicroComms.Transport.ClientTransport", "rp": "MicroComms.Transport_ClientTransport.html", "cl": 38, "ucl": 10, "cal": 48, "tl": 76, "cb": 13, "tb": 30, "cm": 0, "fcm": 0, "tm": 0, "lch": [], "bch": [], "mch": [], "mfch": [], "hc": [], "metrics": { } },
     ]},
 ];
 
@@ -257,6 +263,12 @@ var riskHotspots = [
     "metrics": [
       { "value": 72, "exceeded": true },
       { "value": 8, "exceeded": false },
+    ]},
+  {
+    "assembly": "MicroComms.Transport", "class": "MicroComms.Transport.ClientTransport", "reportPath": "MicroComms.Transport_ClientTransport.html", "methodName": "ReceiveLoop()", "methodShortName": "ReceiveLoop()", "fileIndex": 0, "line": 42,
+    "metrics": [
+      { "value": 16, "exceeded": false },
+      { "value": 16, "exceeded": true },
     ]},
 ];
 
