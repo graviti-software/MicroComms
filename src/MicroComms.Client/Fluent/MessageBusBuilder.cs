@@ -105,8 +105,14 @@ public class MessageBusBuilder
         foreach (var ix in _interceptors) client.UseInterceptor(ix);
 
         // kick off connection
-        transport.ConnectAsync().GetAwaiter().GetResult();
+        await transport.ConnectAsync();
 
         return client;
+    }
+
+    /// <summary>Builds and returns the configured IMessageBus synchronously.</summary>
+    public IMessageBus Build()
+    {
+        return BuildAsync().GetAwaiter().GetResult();
     }
 }
