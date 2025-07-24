@@ -79,7 +79,10 @@ public class MessageHost : IDisposable
                 transport.OnConnected += () => Connected?.Invoke(context.Connection.RemoteIpAddress!);
                 transport.OnDisconnected += () => Disconnected?.Invoke(context.Connection.RemoteIpAddress!);
                 // run a receive loop per‐client
-                _clientTasks.Add(Task.Run(() => transport.ReceiveLoopAsync(context.RequestAborted), context.RequestAborted));
+                var loopTask = transport.ReceiveLoopAsync(context.RequestAborted);
+                _clientTasks.Add(loopTask);
+
+                await loopTask; // wait for the loop to finish
             }
             else
             {

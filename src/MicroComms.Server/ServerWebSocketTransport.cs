@@ -22,32 +22,53 @@ internal class ServerWebSocketTransport : IWebSocketTransport
         OnConnected?.Invoke();
     }
 
-    public Task ConnectAsync(CancellationToken __ = default)
+    public Task ConnectAsync(CancellationToken cancellationToken = default)
         => Task.CompletedTask; // already “connected”
 
-    public Task SendAsync(byte[] data, CancellationToken ct = default)
-        => _socket.SendAsync(data, WebSocketMessageType.Binary, true, ct);
+    public Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
+        => _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
 
-    public Task StopAsync(CancellationToken ct = default)
-        => _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing", ct);
+    public async Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        if (_socket.State == WebSocketState.Open)
+        {
+            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing", cancellationToken);
+        }
+        OnDisconnected?.Invoke(); // already closed or not connected
+    }
 
-    public async Task ReceiveLoopAsync(CancellationToken ct)
+    public async Task ReceiveLoopAsync(CancellationToken cancellationToken)
     {
         var buffer = new byte[4096];
-        while (_socket.State == WebSocketState.Open && !ct.IsCancellationRequested)
+        while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
             using var ms = new MemoryStream();
             WebSocketReceiveResult result;
             do
             {
-                result = await _socket.ReceiveAsync(buffer, ct);
-                await ms.WriteAsync(buffer.AsMemory(0, result.Count), ct);
+                result = await _socket.ReceiveAsync(buffer, cancellationToken);
+
+                // *** ignore close frames (and any non-binary) ***
+                if (result.MessageType == WebSocketMessageType.Close)
+                {
+                    // gracefully exit the loop on close
+                    await StopAsync(cancellationToken);
+                    return;
+                }
+
+                await ms.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
             } while (!result.EndOfMessage);
 
-            await OnMessageReceived(ms.ToArray());
+            // only fire for real binary messages
+            var payload = ms.ToArray();
+            if (payload.Length > 0)
+            {
+                await OnMessageReceived(payload);
+            }
         }
 
         // when loop exits, signal disconnect
-        OnDisconnected?.Invoke();
+
+        await StopAsync(cancellationToken);
     }
 }
