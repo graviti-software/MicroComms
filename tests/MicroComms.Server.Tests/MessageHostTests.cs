@@ -39,7 +39,8 @@ public class MessageHostTests
         _ = host.StartAsync(cts.Token);
 
         // Give the HTTP listener a moment to spin up
-        await Task.Delay(200);
+        await Task.Delay(1000);
+        Console.WriteLine($"Host listening on {urlPrefix}");
 
         // Wire client
         var transport = new ClientTransport(wsEndpoint);
@@ -57,9 +58,11 @@ public class MessageHostTests
 
         // Act: open the socket…
         await transport.ConnectAsync();
+        Console.WriteLine("Client connected to server");
 
         // Act: send a TestMessage and await ack
         ackResult = await client.RequestAsync(new TestMessage { Value = 1234 });
+        Console.WriteLine("Client sent TestMessage and received ack");
 
         // Assert
         handlerRan.Should().BeTrue("the host should have invoked the TestMessage handler");
@@ -68,17 +71,23 @@ public class MessageHostTests
 
         // Cleanup: close the client first
         await cts.CancelAsync();
+        Console.WriteLine("Client disconnected");
         try
         {
             await transport.StopAsync();
+            Console.WriteLine("Transport stopped");
 
             // then stop the host listener so StartAsync returns
             await host.StopAsync();
+            Console.WriteLine("Host stopped");
         }
         catch (OperationCanceledException)
         {
             // ignore if the server already dropped the socket
+            Console.WriteLine("Host already stopped or cancelled");
         }
+
+        Console.WriteLine("Test completed successfully");
     }
 
     // Simple DTO
