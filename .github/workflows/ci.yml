@@ -28,8 +28,7 @@ jobs:
       # - name: Test with coverage
       #   run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
       - name: Test Serialization suite
-        run: dotnet test tests/MicroComms.Serialization.Tests/MicroComms.Serialization.Tests.csproj \
-          --no-build --configuration Release
+        run: dotnet test "tests/MicroComms.Serialization.Tests/MicroComms.Serialization.Tests.csproj" --no-build --configuration Release
 
       - name: Test Client suite
         run: dotnet test tests/MicroComms.Client.Tests/MicroComms.Client.Tests.csproj \
