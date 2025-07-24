@@ -22,6 +22,7 @@ public class MessageHostTests
     [Fact]
     public async Task Host_DispatchesMessage_And_ClientReceivesAck()
     {
+        Console.WriteLine("Starting MessageHostTests...");
         // Arrange
         var port = GetFreePort();
         var urlPrefix = $"http://localhost:{port}/ws/";
@@ -29,12 +30,16 @@ public class MessageHostTests
 
         // Start the host
         var host = new MessageHost(urlPrefix, new MessagePackSerializerAdapter());
+        Console.WriteLine($"MessageHost created with URL prefix: {urlPrefix}");
+
         bool handlerRan = false;
         host.Subscribe<TestMessage>(async msg =>
         {
             handlerRan = msg.Value == 1234;
             await Task.CompletedTask;
         });
+        Console.WriteLine("Subscribed to TestMessage handler");
+
         using var cts = new CancellationTokenSource();
         _ = host.StartAsync(cts.Token);
 
