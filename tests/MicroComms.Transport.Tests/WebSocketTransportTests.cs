@@ -26,6 +26,7 @@ public class WebSocketTransportTests
         var listener = new HttpListener();
         listener.Prefixes.Add(prefix);
         listener.Start();
+        using var cts = new CancellationTokenSource();
 
         var serverTask = Task.Run(async () =>
         {
@@ -37,17 +38,17 @@ public class WebSocketTransportTests
 
                 // Receive one message
                 var buffer = new byte[1024];
-                var result = await socket.ReceiveAsync(buffer, CancellationToken.None);
+                var result = await socket.ReceiveAsync(buffer, cts.Token);
                 var received = new byte[result.Count];
                 Array.Copy(buffer, received, result.Count);
 
                 // Echo it back
-                await socket.SendAsync(received, WebSocketMessageType.Binary, true, CancellationToken.None);
-                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "done", CancellationToken.None);
+                await socket.SendAsync(received, WebSocketMessageType.Binary, true, cts.Token);
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "done", cts.Token);
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                var i = 0;
+                // No-op, expected when the test is cancelled
             }
         });
 
@@ -91,6 +92,7 @@ public class WebSocketTransportTests
 
         // Cleanup
         listener.Stop();
+        await cts.CancelAsync();
         await serverTask;
     }
 }

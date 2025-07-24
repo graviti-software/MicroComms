@@ -13,7 +13,7 @@ public class MessageFrameTests
         {
             Id = Guid.NewGuid(),
             Type = "My.Type.Name",
-            Payload = new byte[] { 10, 20, 30 }
+            Payload = [10, 20, 30]
         };
 
         var serializer = new MessagePackSerializerAdapter();
@@ -32,7 +32,7 @@ public class MessageFrameTests
         {
             Id = Guid.NewGuid(),
             Type = "Another.Type",
-            Payload = new byte[] { 1, 2, 3, 4 }
+            Payload = [1, 2, 3, 4]
         };
 
         var serializer = new JsonSerializerAdapter();

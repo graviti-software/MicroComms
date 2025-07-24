@@ -19,23 +19,23 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
 
     public event Action? OnDisconnected;
 
-    private Task? _receiveTask = null;
-
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         await _socket.ConnectAsync(_endpoint, cancellationToken);
         OnConnected?.Invoke();
-        _receiveTask = Task.Run(() => ReceiveLoop(cancellationToken), cancellationToken);
+        _ = Task.Run(() => ReceiveLoop(cancellationToken), cancellationToken);
     }
 
-    public Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
-        => _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
+    public async Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
+        => await _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
 
-    public Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task StopAsync(CancellationToken cancellationToken = default)
     {
-        if (_socket.State != WebSocketState.Open)
-            return Task.CompletedTask; // already closed or not connected
-        return _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
+        if (_socket.State == WebSocketState.Open)
+        {
+            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
+        }
+        OnDisconnected?.Invoke(); // already closed or not connected
     }
 
     private async Task ReceiveLoop(CancellationToken cancellationToken)
@@ -53,8 +53,7 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     // gracefully exit the loop on close
-                    await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
-                    OnDisconnected?.Invoke();
+                    await StopAsync(cancellationToken);
                     return;
                 }
 
@@ -71,6 +70,6 @@ public class ClientTransport(Uri endpoint) : IWebSocketTransport
             }
         }
 
-        OnDisconnected?.Invoke();
+        await StopAsync(cancellationToken);
     }
 }
