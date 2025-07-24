@@ -26,12 +26,7 @@ jobs:
         run: dotnet build MicroComms.sln --no-restore --configuration Release
       
       - name: Test with coverage
-        run: |
-            dotnet test \
-              --no-build \
-              --configuration Release \
-              --collect:"XPlat Code Coverage" \
-              --results-directory ./TestResults
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
 
       - name: Upload TestResults
         if: always()                  # run even if tests failed
