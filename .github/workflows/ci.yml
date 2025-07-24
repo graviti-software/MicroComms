@@ -25,19 +25,19 @@ jobs:
       - name: Build solution
         run: dotnet build MicroComms.sln --no-restore --configuration Release
 
-      # - name: Test with coverage
-      #   run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
-      - name: Test Serialization suite
-        run: dotnet test "tests/MicroComms.Serialization.Tests/MicroComms.Serialization.Tests.csproj" --no-build --configuration Release
+      - name: Test with coverage
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
+      # - name: Test Serialization suite
+      #   run: dotnet test "tests/MicroComms.Serialization.Tests/MicroComms.Serialization.Tests.csproj" --no-build --configuration Release
 
-      - name: Test Client suite
-        run: dotnet test "tests/MicroComms.Client.Tests/MicroComms.Client.Tests.csproj" --no-build --configuration Release
+      # - name: Test Client suite
+      #   run: dotnet test "tests/MicroComms.Client.Tests/MicroComms.Client.Tests.csproj" --no-build --configuration Release
 
-      - name: Test Transport suite
-        run: dotnet test "tests/MicroComms.Transport.Tests/MicroComms.Transport.Tests.csproj" --no-build --configuration Release
+      # - name: Test Transport suite
+      #   run: dotnet test "tests/MicroComms.Transport.Tests/MicroComms.Transport.Tests.csproj" --no-build --configuration Release
 
-      - name: Test Server suite
-        run: dotnet test "tests/MicroComms.Server.Tests/MicroComms.Server.Tests.csproj" --no-build --configuration Release
+      # - name: Test Server suite
+      #   run: dotnet test "tests/MicroComms.Server.Tests/MicroComms.Server.Tests.csproj" --no-build --configuration Release
 
       - name: Upload TestResults
         if: always()                  # run even if tests failed
