@@ -25,7 +25,7 @@ public class MessageHostTests
         Console.WriteLine("Starting MessageHostTests...");
         // Arrange
         var port = GetFreePort();
-        var urlPrefix = $"http://localhost:{port}/ws/";
+        var urlPrefix = $"http://localhost:{port}";
         var wsEndpoint = new Uri($"ws://localhost:{port}/ws/");
 
         // Start the host

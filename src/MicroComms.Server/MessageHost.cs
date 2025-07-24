@@ -2,6 +2,12 @@
 using MicroComms.Core.Abstractions;
 using MicroComms.Serialization.Adapters;
 using MicroComms.Transport.Abstractions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebSockets;
+using Microsoft.Extensions.DependencyInjection; // Add this using directive
+using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using System.Net;
 
@@ -20,26 +26,66 @@ public class MessageHost : IDisposable
         public byte[] Payload { get; init; } = null!;
     }
 
-    private readonly HttpListener _listener;
+    private readonly IHost _host;
     private readonly ISerializer _serializer;
     private readonly List<IMessageInterceptor> _interceptors = [];
 
     private readonly ConcurrentDictionary<string, List<Func<object, Task>>> _handlers
         = new();
 
-    private readonly List<Task> _clientTasks = new();
+    private readonly List<Task> _clientTasks = [];
 
     /// <summary>Fired when a new client connects (remote endpoint).</summary>
-    public event Action<EndPoint>? Connected;
+    public event Action<IPAddress>? Connected;
 
     /// <summary>Fired when a client disconnects.</summary>
-    public event Action<EndPoint>? Disconnected;
+    public event Action<IPAddress>? Disconnected;
 
     public MessageHost(string urlPrefix, ISerializer? serializer = null)
     {
-        _listener = new HttpListener();
-        _listener.Prefixes.Add(urlPrefix);
+        _host = Host.CreateDefaultBuilder()
+          .ConfigureWebHostDefaults(webBuilder =>
+          {
+              webBuilder.ConfigureServices(services =>
+              {
+                  // add WebSocket support
+                  services.AddWebSockets(options =>
+                  {
+                      options.KeepAliveInterval = TimeSpan.FromSeconds(30);
+                  });
+              });
+              webBuilder.UseUrls(urlPrefix)
+                        .Configure(app =>
+                        {
+                            // map /ws to your WebSocket handler
+                            app.UseWebSockets();
+                            app.Map("/ws", HandleWebSocket);
+                        });
+          })
+          .Build();
+
         _serializer = serializer ?? new MessagePackSerializerAdapter();
+    }
+
+    private void HandleWebSocket(IApplicationBuilder builder)
+    {
+        builder.Use(async (HttpContext context, RequestDelegate next) =>
+        {
+            if (context.WebSockets.IsWebSocketRequest)
+            {
+                var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                var transport = new ServerWebSocketTransport(webSocket);
+                transport.OnMessageReceived += data => HandleClientMessageAsync(transport, data);
+                transport.OnConnected += () => Connected?.Invoke(context.Connection.RemoteIpAddress!);
+                transport.OnDisconnected += () => Disconnected?.Invoke(context.Connection.RemoteIpAddress!);
+                // run a receive loop per‐client
+                _clientTasks.Add(Task.Run(() => transport.ReceiveLoopAsync(context.RequestAborted), context.RequestAborted));
+            }
+            else
+            {
+                context.Response.StatusCode = 400;
+            }
+        });
     }
 
     /// <summary>Add middleware (logging, auth, etc.).</summary>
@@ -52,45 +98,24 @@ public class MessageHost : IDisposable
         var key = typeof(T).AssemblyQualifiedName!;
         var wrapper = new Func<object, Task>(o => handler((T)o));
         _handlers.AddOrUpdate(key,
-            _ => new List<Func<object, Task>> { wrapper },
+            _ => [wrapper],
             (_, list) => { list.Add(wrapper); return list; });
     }
 
     /// <summary>Start listening for WebSocket clients.</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
-        _listener.Start();
-        while (!ct.IsCancellationRequested)
-        {
-            var ctx = await _listener.GetContextAsync();
-            if (!ctx.Request.IsWebSocketRequest)
-            {
-                ctx.Response.StatusCode = 400;
-                ctx.Response.Close();
-                continue;
-            }
-
-            var wsCtx = await ctx.AcceptWebSocketAsync(null);
-            var webSocket = wsCtx.WebSocket;
-            Connected?.Invoke(ctx.Request.RemoteEndPoint);
-
-            // wrap it in our transport
-            var transport = new ServerWebSocketTransport(webSocket);
-            transport.OnMessageReceived += data => HandleClientMessageAsync(transport, data);
-
-            // run a receive loop per‐client
-            _clientTasks.Add(Task.Run(() => transport.ReceiveLoopAsync(ct), ct));
-        }
+        await _host.StartAsync(ct);
     }
 
     /// <summary>Stop listening and disconnect all clients.</summary>
     public async Task StopAsync()
     {
-        _listener.Stop();
+        await _host.StopAsync();
         await Task.WhenAll(_clientTasks);
     }
 
-    public void Dispose() => _ = StopAsync();
+    public void Dispose() => _host.Dispose();
 
     // send back to one client
     private Task SendToClientAsync(IWebSocketTransport transport, byte[] data)

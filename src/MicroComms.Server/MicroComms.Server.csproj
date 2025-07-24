@@ -1,16 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MicroComms.Client\MicroComms.Client.csproj" />
-    <ProjectReference Include="..\MicroComms.Core\MicroComms.Core.csproj" />
-    <ProjectReference Include="..\MicroComms.Serialization\MicroComms.Serialization.csproj" />
-    <ProjectReference Include="..\MicroComms.Transport\MicroComms.Transport.csproj" />
-  </ItemGroup>
+	<!-- Add this so you get Kestrel, WebHostBuilder, etc. -->
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MicroComms.Client\MicroComms.Client.csproj" />
+		<ProjectReference Include="..\MicroComms.Core\MicroComms.Core.csproj" />
+		<ProjectReference Include="..\MicroComms.Serialization\MicroComms.Serialization.csproj" />
+		<ProjectReference Include="..\MicroComms.Transport\MicroComms.Transport.csproj" />
+	</ItemGroup>
 
 </Project>
