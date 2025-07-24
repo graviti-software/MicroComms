@@ -1,0 +1,6 @@
+@MicroComms.Examples.Microservices.B_HostAddress = http://localhost:5255
+
+GET {{MicroComms.Examples.Microservices.B_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,13 @@
+services:
+  microcomms.examples.microservices.a:
+    image: ${DOCKER_REGISTRY-}microcommsexamplesmicroservicesa
+    build:
+      context: ../..
+      dockerfile: examples/microservices/MicroComms.Examples.Microservices.A/Dockerfile
+
+  microcomms.examples.microservices.b:
+    image: ${DOCKER_REGISTRY-}microcommsexamplesmicroservicesb
+    build:
+      context: ../..
+      dockerfile: examples/microservices/MicroComms.Examples.Microservices.B/Dockerfile
+

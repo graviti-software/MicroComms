@@ -1,0 +1,15 @@
+services:
+  microcomms.examples.microservices.a:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "5101:8080"
+
+  microcomms.examples.microservices.b:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "5102:8080"
+
