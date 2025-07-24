@@ -27,6 +27,21 @@ jobs:
 
       - name: Test with coverage
         run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Install ReportGenerator
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Create HTML coverage report
+        run: reportgenerator \
+             -reports:TestResults/**/coverage.cobertura.xml \
+             -targetdir:coverage-report \
+             -reporttypes:Html
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+            name: coverage-report
+            path: coverage-report
       # - name: Test Serialization suite
       #   run: dotnet test "tests/MicroComms.Serialization.Tests/MicroComms.Serialization.Tests.csproj" --no-build --configuration Release
 
@@ -39,9 +54,9 @@ jobs:
       # - name: Test Server suite
       #   run: dotnet test "tests/MicroComms.Server.Tests/MicroComms.Server.Tests.csproj" --no-build --configuration Release
 
-      - name: Upload TestResults
-        if: always()                  # run even if tests failed
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestResults
-          path: ./TestResults
+      # - name: Upload TestResults
+      #   if: always()                  # run even if tests failed
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: TestResults
+      #     path: ./TestResults
