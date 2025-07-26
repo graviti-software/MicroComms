@@ -139,8 +139,8 @@ public class WebSocketTransport : ITransport, IDisposable
         {
             // stop the receive loop
             _receiverCts.Cancel();
-            try { _receiverTask.GetAwaiter().GetResult(); }
-            catch { /* swallow */ }
+            try { Task.Run(() => _receiverTask).Wait(); }
+            catch (AggregateException) { /* swallow */ }
 
             _socket.Dispose();
             _receiverCts.Dispose();
