@@ -1,18 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MicroComms.Core.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MicroComms.Core;
-
-/// <summary>
-/// Simplified mediator interface for sending requests.
-/// </summary>
-public interface IRequestMediator
-{
-    Task<TResponse> SendAsync<TRequest, TResponse>(
-        TRequest request,
-        CancellationToken cancellationToken = default
-    ) where TRequest : IRequest<TResponse>
-      where TResponse : IResponse;
-}
 
 /// <summary>
 /// Default mediator implementation that uses TransportRegistry.

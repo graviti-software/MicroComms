@@ -1,4 +1,4 @@
-﻿using MicroComms.Core;
+﻿using MicroComms.Core.Abstractions;
 using System.Net.Http.Headers;
 
 namespace MicroComms.Transport.Http;

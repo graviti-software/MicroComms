@@ -1,4 +1,4 @@
-﻿using MicroComms.Core;
+﻿using MicroComms.Core.Abstractions;
 using System.IO.Ports;
 
 namespace MicroComms.Transport.Serial;
