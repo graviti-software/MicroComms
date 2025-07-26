@@ -9,10 +9,10 @@ namespace MicroComms.Models;
 public class MicroCommsOptions
 {
     internal string DefaultSerializer { get; private set; } = "json";
-    internal readonly Dictionary<string, HttpTransportMetadata> HttpTransports = new();
-    internal readonly Dictionary<string, Uri> WebSocketTransports = new();
-    internal readonly List<RequestMapping> RequestMappings = new();
-    internal readonly List<InterceptorMapping> InterceptorMappings = new();
+    internal readonly Dictionary<string, HttpTransportMetadata> HttpTransports = [];
+    internal readonly Dictionary<string, Uri> WebSocketTransports = [];
+    internal readonly List<RequestMapping> RequestMappings = [];
+    internal readonly List<InterceptorMapping> InterceptorMappings = [];
 
     public MicroCommsOptions UseJsonSerializer()
     {
