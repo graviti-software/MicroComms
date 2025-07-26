@@ -24,10 +24,22 @@ internal class MessageBus : IMessageBus
 
     public event Action? Reconnecting;
 
-    public MessageBus(ITransport transport, ISerializer serializer, int reconnectDelay)
+    public MessageBus(MicroCommsOptions options)
     {
-        _transport = transport;
-        _serializer = serializer;
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (options.Serializer == null)
+        {
+            throw new ArgumentNullException(nameof(options.Serializer), "Serializer cannot be null.");
+        }
+
+        if (options.Transport == null)
+        {
+            throw new ArgumentNullException(nameof(options.Transport), "Transport cannot be null.");
+        }
+
+        _transport = options.Transport;
+        _serializer = options.Serializer;
 
         // wire lifecycle
         _transport.OnConnected += () => Connected?.Invoke();
@@ -35,7 +47,7 @@ internal class MessageBus : IMessageBus
         _transport.OnDisconnected += async () => await HandleDisconnectionAsync();
 
         _transport.OnMessageReceived += HandleRawMessageAsync;
-        _reconnectDelay = reconnectDelay;
+        _reconnectDelay = options.ReconnectDelay;
     }
 
     private async Task HandleDisconnectionAsync()
@@ -80,7 +92,7 @@ internal class MessageBus : IMessageBus
 
         // 3) Serialize frame & send
         var bytes = _serializer.Serialize(frame);
-        await _transport.SendAsync(bytes, ct);
+        await _transport.SendAsync(string.Empty, bytes, ct);
     }
 
     private async Task HandleRawMessageAsync(byte[] data)
@@ -144,7 +156,7 @@ internal class MessageBus : IMessageBus
             await ix.OnSendingAsync(env);
 
         var bytes = _serializer.Serialize(frame);
-        await _transport.SendAsync(bytes, ct);
+        await _transport.SendAsync(string.Empty, bytes, ct);
 
         // 4) Await the ACK
         return await tcs.Task;
@@ -162,7 +174,7 @@ internal class MessageBus : IMessageBus
             if (disposing)
             {
                 // Dispose managed resources
-                _transport.StopAsync().GetAwaiter().GetResult();
+                _transport.DisconnectAsync().GetAwaiter().GetResult();
                 _interceptors.Clear();
                 _handlers.Clear();
                 _pending.Clear();

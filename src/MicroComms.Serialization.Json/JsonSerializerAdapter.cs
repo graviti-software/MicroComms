@@ -3,15 +3,9 @@ using System.Text.Json;
 
 namespace MicroComms.Serialization.Json;
 
-public class JsonSerializerAdapter : ISerializer
+public class JsonSerializerAdapter(JsonSerializerOptions? options = null) : ISerializer
 {
-    private readonly JsonSerializerOptions _options;
-
-    public JsonSerializerAdapter(JsonSerializerOptions? options = null)
-    {
-        _options = options
-            ?? new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-    }
+    private readonly JsonSerializerOptions _options = options ?? JsonSerializerOptions.Web;
 
     public byte[] Serialize<T>(T obj)
         => JsonSerializer.SerializeToUtf8Bytes(obj, _options);

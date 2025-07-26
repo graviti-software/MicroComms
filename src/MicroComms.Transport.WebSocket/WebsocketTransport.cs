@@ -10,6 +10,8 @@ internal class WebsocketTransport(Uri endpoint) : ITransport
 
     public Uri Endpoint => _endpoint;
 
+    public bool IsConnected => _socket.State == WebSocketState.Open;
+
     public event Func<byte[], Task> OnMessageReceived = _ => Task.CompletedTask;
 
     public event Action? OnConnected;
@@ -18,20 +20,23 @@ internal class WebsocketTransport(Uri endpoint) : ITransport
 
     public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
+        if (IsConnected)
+        {
+            return; // already connected
+        }
         await _socket.ConnectAsync(_endpoint, cancellationToken);
         OnConnected?.Invoke();
         _ = Task.Run(() => ReceiveLoop(cancellationToken), cancellationToken);
     }
 
-    public async Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
-        => await _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
-
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        if (_socket.State == WebSocketState.Open)
+        if (!IsConnected)
         {
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
+            return;
         }
+
+        await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
         OnDisconnected?.Invoke(); // already closed or not connected
     }
 
@@ -50,7 +55,7 @@ internal class WebsocketTransport(Uri endpoint) : ITransport
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     // gracefully exit the loop on close
-                    await StopAsync(cancellationToken);
+                    await DisconnectAsync(cancellationToken);
                     return;
                 }
 
@@ -67,6 +72,15 @@ internal class WebsocketTransport(Uri endpoint) : ITransport
             }
         }
 
-        await StopAsync(cancellationToken);
+        await DisconnectAsync(cancellationToken);
+    }
+
+    public async Task SendAsync(string destination, byte[] data, CancellationToken cancellationToken = default)
+    {
+        if (!IsConnected)
+        {
+            await ConnectAsync(cancellationToken);
+        }
+        await _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
     }
 }

@@ -4,10 +4,10 @@ using MicroComms.Core.Abstractions;
 
 namespace MicroComms.Serialization.MessagePack;
 
-public class MessagePackSerializerAdapter : ISerializer
+public class MessagePackSerializerAdapter(MessagePackSerializerOptions? options = null) : ISerializer
 {
-    // Use the contract-less resolver that also allows private members:
-    private static readonly MessagePackSerializerOptions Options =
+    private readonly MessagePackSerializerOptions Options =
+        options ??
         MessagePackSerializerOptions.Standard
             .WithResolver(ContractlessStandardResolverAllowPrivate.Instance);
 

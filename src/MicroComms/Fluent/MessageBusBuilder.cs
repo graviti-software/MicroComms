@@ -1,4 +1,5 @@
 ﻿using MicroComms.Core.Abstractions;
+using MicroComms.Models;
 using MicroComms.Serialization.MessagePack;
 using MicroComms.Services;
 
@@ -92,9 +93,15 @@ public class MessageBusBuilder
         {
             throw new InvalidOperationException("Transport must be set before building the MessageBus.");
         }
-        var client = new MessageBus(_transport,
-            _serializer,
-            _reconnectDelay);
+
+        var options = new MicroCommsOptions
+        {
+            Serializer = _serializer,
+            Transport = _transport,
+            ReconnectDelay = _reconnectDelay
+        };
+
+        var client = new MessageBus(options);
 
         // wire events
         foreach (var h in _onConnectedHandlers) client.Connected += h;

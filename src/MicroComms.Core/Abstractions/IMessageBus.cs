@@ -1,27 +1,10 @@
-﻿using MicroComms.Core.Models;
-
-namespace MicroComms.Core.Abstractions;
+﻿namespace MicroComms.Core.Abstractions;
 
 /// <summary>
-/// Publish–subscribe and request–response messaging.
+/// Defines the message bus API for handling messages.
 /// </summary>
 public interface IMessageBus : IDisposable
 {
-    /// <summary>Fire-and-forget.</summary>
-    Task SendAsync<T>(T message, CancellationToken cancellationToken = default);
-
-    /// <summary>Request/response via correlation.</summary>
-    Task<Response> RequestAsync<TRequest>(
-        TRequest message,
-        CancellationToken cancellationToken = default
-    );
-
-    /// <summary>Request/response with payload.</summary>
-    Task<Response<TPayload>> RequestAsync<TRequest, TPayload>(
-        TRequest message,
-        CancellationToken cancellationToken = default
-    );
-
     /// <summary>Handle incoming messages of type T.</summary>
     void Subscribe<T>(Func<T, Task> handler);
 

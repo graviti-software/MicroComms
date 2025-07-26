@@ -28,7 +28,7 @@ internal class ServerWebSocketTransport : ITransport
     public Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
         => _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
 
-    public async Task StopAsync(CancellationToken cancellationToken = default)
+    public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
         if (_socket.State == WebSocketState.Open)
         {
@@ -52,7 +52,7 @@ internal class ServerWebSocketTransport : ITransport
                 if (result.MessageType == WebSocketMessageType.Close)
                 {
                     // gracefully exit the loop on close
-                    await StopAsync(cancellationToken);
+                    await DisconnectAsync(cancellationToken);
                     return;
                 }
 
@@ -69,6 +69,6 @@ internal class ServerWebSocketTransport : ITransport
 
         // when loop exits, signal disconnect
 
-        await StopAsync(cancellationToken);
+        await DisconnectAsync(cancellationToken);
     }
 }

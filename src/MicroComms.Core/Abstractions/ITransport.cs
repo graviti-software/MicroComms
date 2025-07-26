@@ -6,7 +6,9 @@ public interface ITransport
     Task ConnectAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Send raw bytes.</summary>
-    Task SendAsync(byte[] data, CancellationToken cancellationToken = default);
+    Task SendAsync(string destination, byte[] data, CancellationToken cancellationToken = default);
+
+    bool IsConnected { get; }
 
     /// <summary>Fires when raw bytes are received.</summary>
     event Func<byte[], Task> OnMessageReceived;
@@ -18,5 +20,5 @@ public interface ITransport
     event Action? OnDisconnected;
 
     /// <summary>Gracefully stop the connection.</summary>
-    Task StopAsync(CancellationToken cancellationToken = default);
+    Task DisconnectAsync(CancellationToken cancellationToken = default);
 }
