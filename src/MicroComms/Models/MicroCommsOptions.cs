@@ -1,4 +1,5 @@
-﻿using MicroComms.Core.Abstractions;
+﻿using MicroComms.Core;
+using MicroComms.Core.Abstractions;
 
 namespace MicroComms.Models;
 

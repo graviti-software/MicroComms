@@ -1,35 +1,34 @@
-﻿using MicroComms.Core.Abstractions;
-using MicroComms.Models;
+﻿using MicroComms.Core;
+using MicroComms.Core.Abstractions;
+using MicroComms.Serialization.Json;
+using MicroComms.Serialization.MessagePack;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MicroComms.DependencyInjection;
 
-public class DependencyInjectionExtensions
+public static class DependencyInjectionExtensions
 {
     /// <summary>
-    /// Adds MicroComms services to the dependency injection container.
+    /// Adds MicroComms core services and invokes your transport registrations.
     /// </summary>
-    /// <param name="services">The service collection to add services to.</param>
-    /// <returns>The updated service collection.</returns>
-    public static IServiceCollection AddMicroComms(this IServiceCollection services,
-        Action<MicroCommsOptions>? configureOptions = null)
+    /// <param name="services">IServiceCollection to extend</param>
+    /// <param name="configure">
+    ///   Callback to register each request type:
+    ///   registry.Register&lt;TRequest&gt;(transportInstance, metadata);
+    /// </param>
+    public static IServiceCollection AddMicroComms(
+        this IServiceCollection services
+    )
     {
-        var options = new MicroCommsOptions();
-        configureOptions?.Invoke(options);
-        if (options.Serializer == null)
-        {
-            throw new ArgumentNullException(nameof(options.Serializer), "Serializer cannot be null.");
-        }
-        if (options.Transport == null)
-        {
-            throw new ArgumentNullException(nameof(options.Transport), "Transport cannot be null.");
-        }
-        // Register the serializer and transport
-        services.AddSingleton(options.Serializer);
-        services.AddSingleton(options.Transport);
-        // Register the message bus
-        services.AddSingleton<IMessageBus, MessageBus>(provider =>
-            new MessageBus(options));
+        // For HttpTransport’s HttpClient usage:
+        services.AddHttpClient();
+
+        services.AddKeyedSingleton<ISerializer, JsonSerializerAdapter>("json");
+        services.AddKeyedSingleton<ISerializer, MessagePackSerializerAdapter>("msgpack");
+
+        // Register the mediator
+        services.AddSingleton<IRequestMediator, RequestMediator>();
+
         return services;
     }
 }

@@ -1,4 +1,5 @@
-﻿using MicroComms.Core.Abstractions;
+﻿using MicroComms.Core;
+using MicroComms.Core.Abstractions;
 using MicroComms.Core.Models;
 using MicroComms.Serialization.MessagePack;
 using Microsoft.AspNetCore.Builder;

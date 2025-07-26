@@ -1,15 +1,9 @@
 ﻿using FluentAssertions;
-using MicroComms.Client.Services;
-using MicroComms.Core.Abstractions;
-using MicroComms.Core.Models;
-using MicroComms.Serialization.Adapters;
-using MicroComms.Transport.Abstractions;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace MicroComms.Client.Tests;
 
 // A simple fake transport for unit tests
-internal class FakeTransport : IWebSocketTransport
+internal class FakeTransport : ITransport
 {
     public byte[]? LastSent { get; private set; }
 

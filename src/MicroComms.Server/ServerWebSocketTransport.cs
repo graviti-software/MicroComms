@@ -1,4 +1,4 @@
-﻿using MicroComms.Core.Abstractions;
+﻿using MicroComms.Core;
 using System.Net.WebSockets;
 
 namespace MicroComms.Server;
