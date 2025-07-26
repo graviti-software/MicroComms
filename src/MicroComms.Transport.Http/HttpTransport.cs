@@ -27,9 +27,6 @@ public class HttpTransport(HttpClient client, HttpTransportMetadata meta) : ITra
                                     .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        var strResponse = await response.Content.ReadAsStringAsync(cancellationToken)
-                                                .ConfigureAwait(false);
-
         // 4) Read raw bytes
         return await response.Content
                              .ReadAsByteArrayAsync(cancellationToken)
