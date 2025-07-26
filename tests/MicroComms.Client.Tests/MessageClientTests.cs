@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
-using MicroComms.Client.Models;
 using MicroComms.Client.Services;
 using MicroComms.Core.Abstractions;
+using MicroComms.Core.Models;
 using MicroComms.Serialization.Adapters;
 using MicroComms.Transport.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -71,7 +71,7 @@ public class MessageClientTests
         var client = new MessageClient(
             transport,
             serializer,
-            NullLogger<MessageClient>.Instance,
+            NullLogger<MessageBus>.Instance,
             reconnectDelay: 0
         );
 
@@ -101,7 +101,7 @@ public class MessageClientTests
         var client = new MessageClient(
             transport,
             serializer,
-            NullLogger<MessageClient>.Instance,
+            NullLogger<MessageBus>.Instance,
             reconnectDelay: 0
         );
 
@@ -113,7 +113,7 @@ public class MessageClientTests
         });
 
         // Build a wire frame and pump it through
-        var inboundFrame = new MessageFrame
+        var inboundFrame = new MessageFrame(default)
         {
             Id = Guid.NewGuid(),
             Type = typeof(TestMessage).AssemblyQualifiedName!,
@@ -134,7 +134,7 @@ public class MessageClientTests
         var client = new MessageClient(
             transport,
             serializer,
-            NullLogger<MessageClient>.Instance,
+            NullLogger<MessageBus>.Instance,
             reconnectDelay: 0
         );
 
@@ -151,10 +151,10 @@ public class MessageClientTests
             StatusCode = 200,
             ErrorMessage = null
         };
-        var ackFrame = new MessageFrame
+        var ackFrame = new MessageFrame(default)
         {
             Id = Guid.NewGuid(),
-            Type = typeof(Ack).AssemblyQualifiedName!,
+            Type = typeof(Response).AssemblyQualifiedName!,
             Payload = serializer.Serialize(ack)
         };
         var rawAck = serializer.Serialize(ackFrame);
@@ -174,7 +174,7 @@ public class MessageClientTests
         var client = new MessageClient(
             transport,
             serializer,
-            NullLogger<MessageClient>.Instance,
+            NullLogger<MessageBus>.Instance,
             reconnectDelay: 0
         );
 
@@ -199,7 +199,7 @@ public class MessageClientTests
         });
 
         // Build a wire-frame for TestMessage
-        var frame = new MessageFrame
+        var frame = new MessageFrame(default)
         {
             Id = Guid.NewGuid(),
             Type = typeof(TestMessage).AssemblyQualifiedName!,

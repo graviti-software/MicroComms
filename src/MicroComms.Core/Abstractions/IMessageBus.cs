@@ -1,4 +1,6 @@
-﻿namespace MicroComms.Core.Abstractions;
+﻿using MicroComms.Core.Models;
+
+namespace MicroComms.Core.Abstractions;
 
 /// <summary>
 /// Publish–subscribe and request–response messaging.
@@ -6,12 +8,18 @@
 public interface IMessageBus : IDisposable
 {
     /// <summary>Fire-and-forget.</summary>
-    Task SendAsync<T>(T message, CancellationToken ct = default);
+    Task SendAsync<T>(T message, CancellationToken cancellationToken = default);
 
     /// <summary>Request/response via correlation.</summary>
-    Task<Ack> RequestAsync<TRequest>(
+    Task<Response> RequestAsync<TRequest>(
         TRequest message,
-        CancellationToken ct = default
+        CancellationToken cancellationToken = default
+    );
+
+    /// <summary>Request/response with payload.</summary>
+    Task<Response<TPayload>> RequestAsync<TRequest, TPayload>(
+        TRequest message,
+        CancellationToken cancellationToken = default
     );
 
     /// <summary>Handle incoming messages of type T.</summary>

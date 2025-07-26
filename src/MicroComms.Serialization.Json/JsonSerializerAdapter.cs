@@ -1,7 +1,7 @@
 ﻿using MicroComms.Core.Abstractions;
 using System.Text.Json;
 
-namespace MicroComms.Serialization.Adapters;
+namespace MicroComms.Serialization.Json;
 
 public class JsonSerializerAdapter : ISerializer
 {

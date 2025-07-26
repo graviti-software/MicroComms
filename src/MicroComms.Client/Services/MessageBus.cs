@@ -1,21 +1,20 @@
 ﻿using MicroComms.Client.Models;
 using MicroComms.Core.Abstractions;
-using MicroComms.Transport.Abstractions;
-using Microsoft.Extensions.Logging;
+using MicroComms.Core.Models;
 using System.Collections.Concurrent;
 
 namespace MicroComms.Client.Services;
 
-public class MessageClient : IMessageBus
+internal class MessageBus : IMessageBus
 {
-    private readonly IWebSocketTransport _transport;
+    private readonly ITransport _transport;
     private readonly ISerializer _serializer;
-    private readonly ILogger _logger;
     private readonly List<IMessageInterceptor> _interceptors = [];
     private readonly ConcurrentDictionary<string, List<Func<object, Task>>> _handlers = [];
+    private bool _disposed;
 
     // Tracks in-flight requests by message Id
-    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Ack>> _pending = [];
+    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<Response>> _pending = [];
 
     private readonly int _reconnectDelay;
 
@@ -25,11 +24,10 @@ public class MessageClient : IMessageBus
 
     public event Action? Reconnecting;
 
-    public MessageClient(IWebSocketTransport transport, ISerializer serializer, ILogger logger, int reconnectDelay)
+    public MessageBus(ITransport transport, ISerializer serializer, int reconnectDelay)
     {
         _transport = transport;
         _serializer = serializer;
-        _logger = logger;
 
         // wire lifecycle
         _transport.OnConnected += () => Connected?.Invoke();
@@ -40,22 +38,13 @@ public class MessageClient : IMessageBus
         _reconnectDelay = reconnectDelay;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S2139:Exceptions should be either logged or rethrown but not both", Justification = "No need, used in logging")]
     private async Task HandleDisconnectionAsync()
     {
-        try
-        {
-            Disconnected?.Invoke();
-            Reconnecting?.Invoke();
-            // simple backoff/reconnect
-            await Task.Delay(_reconnectDelay);
-            await _transport.ConnectAsync();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during reconnection attempt.");
-            throw;
-        }
+        Disconnected?.Invoke();
+        Reconnecting?.Invoke();
+        // simple backoff/reconnect
+        await Task.Delay(_reconnectDelay);
+        await _transport.ConnectAsync();
     }
 
     public void UseInterceptor(IMessageInterceptor interceptor)
@@ -73,20 +62,19 @@ public class MessageClient : IMessageBus
     public async Task SendAsync<T>(T message, CancellationToken ct = default)
     {
         // 1) Build frame
-        var frame = new MessageFrame
-        {
-            Id = Guid.NewGuid(),
-            Type = typeof(T).AssemblyQualifiedName!,
-            Payload = _serializer.Serialize(message)
-        };
+        var frame = new MessageFrame(
+            Guid.NewGuid(),
+            typeof(T).AssemblyQualifiedName!,
+            _serializer.Serialize(message)
+        );
 
         // 2) Intercept outgoing
-        var env = new MessageEnvelope
-        {
-            Id = frame.Id,
-            Type = frame.Type,
-            Payload = frame.Payload
-        };
+        var env = new MessageEnvelope(
+            frame.Id,
+            frame.Type,
+            frame.Payload
+        );
+
         foreach (var ix in _interceptors)
             await ix.OnSendingAsync(env);
 
@@ -101,22 +89,21 @@ public class MessageClient : IMessageBus
         var frame = _serializer.Deserialize<MessageFrame>(data);
 
         // 2) Is this an ACK?
-        var ackTypeName = typeof(Ack).AssemblyQualifiedName!;
+        var ackTypeName = typeof(Response).AssemblyQualifiedName!;
         if (frame.Type == ackTypeName)
         {
-            var ack = _serializer.Deserialize<Ack>(frame.Payload);
+            var ack = _serializer.Deserialize<Response>(frame.Payload);
             if (_pending.TryRemove(ack.CorrelationId, out var tcs))
                 tcs.TrySetResult(ack);
             return;      // do not dispatch further
         }
 
         // 3) Normal intercept
-        var env = new MessageEnvelope
-        {
-            Id = frame.Id,
-            Type = frame.Type,
-            Payload = frame.Payload
-        };
+        var env = new MessageEnvelope(
+            frame.Id,
+            frame.Type,
+            frame.Payload
+        );
         foreach (var ix in _interceptors)
             await ix.OnReceivedAsync(env);
 
@@ -130,31 +117,29 @@ public class MessageClient : IMessageBus
         }
     }
 
-    public async Task<Ack> RequestAsync<T>(T message, CancellationToken ct = default)
+    public async Task<Response> RequestAsync<T>(T message, CancellationToken ct = default)
     {
         // 1) Prepare envelope
         var id = Guid.NewGuid();
-        var frame = new MessageFrame
-        {
-            Id = id,
-            Type = typeof(T).AssemblyQualifiedName!,
-            Payload = _serializer.Serialize(message)
-        };
+        var frame = new MessageFrame(
+            id,
+            typeof(T).AssemblyQualifiedName!,
+            _serializer.Serialize(message)
+        );
 
         // 2) Create a TCS and register cancellation
-        var tcs = new TaskCompletionSource<Ack>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var tcs = new TaskCompletionSource<Response>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var registration = ct.Register(() => tcs.TrySetCanceled(ct));
 
         if (!_pending.TryAdd(id, tcs))
             throw new InvalidOperationException("ID collision on pending requests.");
 
         // 3) Intercept & send
-        var env = new MessageEnvelope
-        {
-            Id = frame.Id,
-            Type = frame.Type,
-            Payload = frame.Payload
-        };
+        var env = new MessageEnvelope(
+            frame.Id,
+            frame.Type,
+            frame.Payload
+        );
         foreach (var ix in _interceptors)
             await ix.OnSendingAsync(env);
 
@@ -165,5 +150,31 @@ public class MessageClient : IMessageBus
         return await tcs.Task;
     }
 
-    public void Dispose() => _transport.StopAsync().GetAwaiter().GetResult();
+    public Task<Response<TPayload>> RequestAsync<TRequest, TPayload>(TRequest message, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            if (disposing)
+            {
+                // Dispose managed resources
+                _transport.StopAsync().GetAwaiter().GetResult();
+                _interceptors.Clear();
+                _handlers.Clear();
+                _pending.Clear();
+            }
+            // No unmanaged resources to release
+            _disposed = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
 }

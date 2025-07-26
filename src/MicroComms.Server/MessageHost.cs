@@ -1,7 +1,6 @@
-﻿using MicroComms.Client.Models;
-using MicroComms.Core.Abstractions;
-using MicroComms.Serialization.Adapters;
-using MicroComms.Transport.Abstractions;
+﻿using MicroComms.Core.Abstractions;
+using MicroComms.Core.Models;
+using MicroComms.Serialization.MessagePack;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -121,12 +120,12 @@ public class MessageHost : IDisposable
     public void Dispose() => _host.Dispose();
 
     // send back to one client
-    private Task SendToClientAsync(IWebSocketTransport transport, byte[] data)
+    private Task SendToClientAsync(ITransport transport, byte[] data)
         => transport.SendAsync(data);
 
     // called on each message from a specific client
     private async Task HandleClientMessageAsync(
-        IWebSocketTransport transport,
+        ITransport transport,
         byte[] data
     )
     {
@@ -173,20 +172,18 @@ public class MessageHost : IDisposable
         }
 
         // 4) Build and send back the ACK frame
-        var ack = new Ack
-        {
-            CorrelationId = frame.Id,
-            StatusCode = status,
-            ErrorMessage = error
-        };
+        var ack = new Response(
+            frame.Id,
+            status,
+            error
+        );
 
         var ackPayload = _serializer.Serialize(ack);
-        var ackFrame = new MessageFrame
-        {
-            Id = Guid.NewGuid(),
-            Type = typeof(Ack).AssemblyQualifiedName!,
-            Payload = ackPayload
-        };
+        var ackFrame = new MessageFrame(
+            Guid.NewGuid(),
+            typeof(Response).AssemblyQualifiedName!,
+            ackPayload
+        );
 
         // 5) Intercept outgoing ACK
         var outgoingEnv = new EnvelopeImpl

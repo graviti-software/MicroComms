@@ -1,30 +1,25 @@
-﻿using MicroComms.Client.Services;
-using MicroComms.Core.Abstractions;
-using MicroComms.Serialization.Adapters;
-using MicroComms.Transport;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
+﻿using MicroComms.Core.Abstractions;
+using MicroComms.Serialization.MessagePack;
+using MicroComms.Services;
 
-namespace MicroComms.Client.Fluent;
+namespace MicroComms.Fluent;
 
 /// <summary>
 /// Fluent builder for IMessageBus (MessageClient).
 /// </summary>
 public class MessageBusBuilder
 {
-    private Uri? _endpoint;
     private ISerializer _serializer = new MessagePackSerializerAdapter();
+    private ITransport? _transport;
     private readonly List<IMessageInterceptor> _interceptors = [];
     private readonly List<Action> _onConnectedHandlers = [];
     private readonly List<Action> _onDisconnectedHandlers = [];
     private readonly List<Action> _onReconnectingHandlers = [];
-    private ILogger _logger = NullLogger<MessageClient>.Instance;
     private int _reconnectDelay = 2000;
 
-    /// <summary>Specify the WebSocket URI of the broker/host.</summary>
-    public MessageBusBuilder WithEndpoint(string uri)
+    public MessageBusBuilder WithTransport(ITransport transport)
     {
-        _endpoint = new Uri(uri);
+        _transport = transport ?? throw new ArgumentNullException(nameof(transport), "Transport cannot be null.");
         return this;
     }
 
@@ -32,13 +27,6 @@ public class MessageBusBuilder
     public MessageBusBuilder WithSerializer(ISerializer serializer)
     {
         _serializer = serializer;
-        return this;
-    }
-
-    /// <summary>Override the default logger (otherwise a no-op NullLogger is used).</summary>
-    public MessageBusBuilder WithLogger(ILogger logger)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger), "Logger cannot be null.");
         return this;
     }
 
@@ -100,16 +88,12 @@ public class MessageBusBuilder
     /// <summary>Builds and returns the configured IMessageBus.</summary>
     public async Task<IMessageBus> BuildAsync()
     {
-        if (_endpoint is null)
+        if (_transport == null)
         {
-            throw new InvalidOperationException("Endpoint must be specified.");
+            throw new InvalidOperationException("Transport must be set before building the MessageBus.");
         }
-
-        // create transport + client
-        var transport = new ClientTransport(_endpoint);
-        var client = new MessageClient(transport,
+        var client = new MessageBus(_transport,
             _serializer,
-            _logger,
             _reconnectDelay);
 
         // wire events
@@ -121,7 +105,7 @@ public class MessageBusBuilder
         foreach (var ix in _interceptors) client.UseInterceptor(ix);
 
         // kick off connection
-        await transport.ConnectAsync();
+        await _transport.ConnectAsync();
 
         return client;
     }

@@ -1,43 +1,41 @@
 ﻿using MicroComms.Core.Abstractions;
 using System.Net.WebSockets;
 
-namespace MicroComms.Server;
+namespace MicroComms.Transport.WebSocket;
 
-internal class ServerWebSocketTransport : ITransport
+internal class WebsocketTransport(Uri endpoint) : ITransport
 {
-    private readonly WebSocket _socket;
+    private readonly Uri _endpoint = endpoint;
+    private readonly ClientWebSocket _socket = new();
 
-    // the existing event
+    public Uri Endpoint => _endpoint;
+
     public event Func<byte[], Task> OnMessageReceived = _ => Task.CompletedTask;
 
-    // ← add these two:
     public event Action? OnConnected;
 
     public event Action? OnDisconnected;
 
-    public ServerWebSocketTransport(WebSocket socket)
+    public async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        _socket = socket;
-        // fire connected immediately since this ctor runs after AcceptWebSocketAsync
+        await _socket.ConnectAsync(_endpoint, cancellationToken);
         OnConnected?.Invoke();
+        _ = Task.Run(() => ReceiveLoop(cancellationToken), cancellationToken);
     }
 
-    public Task ConnectAsync(CancellationToken cancellationToken = default)
-        => Task.CompletedTask; // already “connected”
-
-    public Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
-        => _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
+    public async Task SendAsync(byte[] data, CancellationToken cancellationToken = default)
+        => await _socket.SendAsync(data, WebSocketMessageType.Binary, true, cancellationToken);
 
     public async Task StopAsync(CancellationToken cancellationToken = default)
     {
         if (_socket.State == WebSocketState.Open)
         {
-            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing", cancellationToken);
+            await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closing", cancellationToken);
         }
         OnDisconnected?.Invoke(); // already closed or not connected
     }
 
-    public async Task ReceiveLoopAsync(CancellationToken cancellationToken)
+    private async Task ReceiveLoop(CancellationToken cancellationToken)
     {
         var buffer = new byte[4096];
         while (_socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
@@ -56,7 +54,9 @@ internal class ServerWebSocketTransport : ITransport
                     return;
                 }
 
-                await ms.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
+                // only accumulate binary payload
+                if (result.MessageType == WebSocketMessageType.Binary)
+                    await ms.WriteAsync(buffer.AsMemory(0, result.Count), cancellationToken);
             } while (!result.EndOfMessage);
 
             // only fire for real binary messages
@@ -66,8 +66,6 @@ internal class ServerWebSocketTransport : ITransport
                 await OnMessageReceived(payload);
             }
         }
-
-        // when loop exits, signal disconnect
 
         await StopAsync(cancellationToken);
     }

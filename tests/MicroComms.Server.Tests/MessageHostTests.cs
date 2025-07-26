@@ -1,6 +1,6 @@
 ﻿using FluentAssertions;
 using MicroComms.Client.Services;
-using MicroComms.Core.Abstractions;
+using MicroComms.Core.Models;
 using MicroComms.Serialization.Adapters;
 using MicroComms.Transport;
 using System.Net;
@@ -53,11 +53,11 @@ public class MessageHostTests
             transport,
             new MessagePackSerializerAdapter(),
             // use null-logger to satisfy ctor
-            Microsoft.Extensions.Logging.Abstractions.NullLogger<MessageClient>.Instance,
+            Microsoft.Extensions.Logging.Abstractions.NullLogger<MessageBus>.Instance,
             reconnectDelay: 0
         );
 
-        Ack? ackResult = null;
+        Response? ackResult = null;
         transport.OnConnected += () => { /* ok */ };
         transport.OnDisconnected += () => { /* ok */ };
 

@@ -17,10 +17,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\MicroComms.Client\MicroComms.Client.csproj" />
 		<ProjectReference Include="..\MicroComms.Core\MicroComms.Core.csproj" />
-		<ProjectReference Include="..\MicroComms.Serialization\MicroComms.Serialization.csproj" />
-		<ProjectReference Include="..\MicroComms.Transport\MicroComms.Transport.csproj" />
+		<ProjectReference Include="..\MicroComms.Serialization.Json\MicroComms.Serialization.Json.csproj" />
+		<ProjectReference Include="..\MicroComms.Serialization.MessagePack\MicroComms.Serialization.MessagePack.csproj" />
 	</ItemGroup>
 
 </Project>

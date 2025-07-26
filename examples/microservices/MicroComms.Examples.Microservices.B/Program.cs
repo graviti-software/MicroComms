@@ -1,6 +1,6 @@
 // 1) Create the WebSocket transport pointing at A’s host
 using MicroComms.Client.Services;
-using MicroComms.Core.Abstractions;
+using MicroComms.Core.Models;
 using MicroComms.Examples.Microservices.Dto;
 using MicroComms.Serialization.Adapters;
 using MicroComms.Transport;
@@ -12,7 +12,7 @@ var transport = new ClientTransport(new Uri("ws://localhost:5001/ws"));
 var client = new MessageClient(
     transport,
     new JsonSerializerAdapter(),
-    NullLogger<MessageClient>.Instance,
+    NullLogger<MessageBus>.Instance,
     reconnectDelay: 1000
 );
 
@@ -46,7 +46,7 @@ app.MapGet("/health", () =>
 app.MapPost("/publish-product", async (Product product) =>
 {
     // Send the product, wait for Ack
-    Ack ack = await client.RequestAsync(product);
+    Response ack = await client.RequestAsync(product);
 
     return ack.StatusCode == 200
         ? Results.Created($"/products/{product.Id}", product)
