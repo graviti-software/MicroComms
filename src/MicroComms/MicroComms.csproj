@@ -1,22 +1,27 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\MicroComms.Core\MicroComms.Core.csproj" />
-    <ProjectReference Include="..\MicroComms.Serialization.Json\MicroComms.Serialization.Json.csproj" />
-    <ProjectReference Include="..\MicroComms.Serialization.MessagePack\MicroComms.Serialization.MessagePack.csproj" />
-    <ProjectReference Include="..\MicroComms.Transport.Http\MicroComms.Transport.Http.csproj" />
-    <ProjectReference Include="..\MicroComms.Transport.Serial\MicroComms.Transport.Serial.csproj" />
-    <ProjectReference Include="..\MicroComms.Transport.WebSocket\MicroComms.Transport.WebSocket.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\MicroComms.Core\MicroComms.Core.csproj" />
+		<ProjectReference Include="..\MicroComms.Serialization.Json\MicroComms.Serialization.Json.csproj" />
+		<ProjectReference Include="..\MicroComms.Serialization.MessagePack\MicroComms.Serialization.MessagePack.csproj" />
+		<ProjectReference Include="..\MicroComms.Transport.Http\MicroComms.Transport.Http.csproj" />
+		<ProjectReference Include="..\MicroComms.Transport.Serial\MicroComms.Transport.Serial.csproj" />
+		<ProjectReference Include="..\MicroComms.Transport.WebSocket\MicroComms.Transport.WebSocket.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Services\" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.7" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="9.0.7" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Services\" />
+	</ItemGroup>
 
 </Project>
