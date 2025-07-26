@@ -112,5 +112,73 @@ public class MicroCommsBuilder
             // Execute pipeline
             return pipeline(request, cancellationToken);
         }
+
+        public Task<TResponse> SendAsync<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default) where TResponse : IResponse
+        {
+            var requestType = request.GetType();
+            if (!_handlers.TryGetValue(requestType, out var rawHandler))
+            {
+                throw new InvalidOperationException(
+                    $"No handler registered for {requestType.Name}"
+                );
+            }
+
+            // Use reflection to invoke the generic handler
+            var handlerInterface = rawHandler.GetType()
+                .GetInterfaces()
+                .FirstOrDefault(i =>
+                    i.IsGenericType &&
+                    i.GetGenericTypeDefinition().Name.StartsWith("ITransportHandler") &&
+                    i.GenericTypeArguments.Length == 2 &&
+                    typeof(IRequest<TResponse>).IsAssignableFrom(i.GenericTypeArguments[0]) &&
+                    typeof(TResponse).IsAssignableFrom(i.GenericTypeArguments[1])
+                );
+
+            if (handlerInterface == null)
+                throw new InvalidOperationException($"Handler for {requestType.Name} does not implement expected interface.");
+
+            var handlerRequestType = handlerInterface.GenericTypeArguments[0];
+            var handlerResponseType = handlerInterface.GenericTypeArguments[1];
+
+            // Build pipeline dynamically
+            Func<object, CancellationToken, Task<object>> pipeline = async (req, ct) =>
+            {
+                var sendAsyncMethod = rawHandler.GetType().GetMethod("SendAsync", new[] { handlerRequestType, typeof(CancellationToken) });
+                if (sendAsyncMethod == null)
+                    throw new InvalidOperationException("Handler does not have SendAsync method.");
+                var task = (Task)sendAsyncMethod.Invoke(rawHandler, new object[] { req, ct });
+                await task.ConfigureAwait(false);
+                var resultProperty = task.GetType().GetProperty("Result");
+                return resultProperty.GetValue(task);
+            };
+
+            // Wrap with interceptors if any
+            if (_interceptors.TryGetValue(requestType, out var list))
+            {
+                foreach (var rawInterceptor in list.Cast<object>().Reverse())
+                {
+                    var interceptorType = typeof(IMessageInterceptor<,>).MakeGenericType(handlerRequestType, handlerResponseType);
+                    var interceptAsyncMethod = interceptorType.GetMethod("InterceptAsync");
+                    var next = pipeline;
+                    pipeline = async (req, ct) =>
+                    {
+                        // nextDelegate: (TRequest, CancellationToken) => Task<TResponse>
+                        Func<object, CancellationToken, Task<object>> nextDelegate = next;
+                        // Create strongly-typed next
+                        var stronglyTypedNext = Delegate.CreateDelegate(
+                            typeof(Func<,,>).MakeGenericType(handlerRequestType, typeof(CancellationToken), typeof(Task<>).MakeGenericType(handlerResponseType)),
+                            next.Target, next.Method
+                        );
+                        var task = (Task)interceptAsyncMethod.Invoke(rawInterceptor, new object[] { req, stronglyTypedNext, ct });
+                        await task.ConfigureAwait(false);
+                        var resultProperty = task.GetType().GetProperty("Result");
+                        return resultProperty.GetValue(task);
+                    };
+                }
+            }
+
+            // Execute pipeline
+            return pipeline(request, cancellationToken).ContinueWith(t => (TResponse)t.Result, cancellationToken);
+        }
     }
 }

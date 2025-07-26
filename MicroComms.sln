@@ -39,6 +39,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "console", "console", "{5384
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleHttpEcho", "examples\console\ConsoleHttpEcho\ConsoleHttpEcho.csproj", "{A352E47B-E2B1-4024-A1EA-D0DBD5C81AD1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWebSocketEcho", "examples\console\ConsoleWebSocketEcho\ConsoleWebSocketEcho.csproj", "{5557F16F-7DB0-4DF3-A584-2D16F9586ABC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -97,6 +99,10 @@ Global
 		{A352E47B-E2B1-4024-A1EA-D0DBD5C81AD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A352E47B-E2B1-4024-A1EA-D0DBD5C81AD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A352E47B-E2B1-4024-A1EA-D0DBD5C81AD1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5557F16F-7DB0-4DF3-A584-2D16F9586ABC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5557F16F-7DB0-4DF3-A584-2D16F9586ABC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5557F16F-7DB0-4DF3-A584-2D16F9586ABC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5557F16F-7DB0-4DF3-A584-2D16F9586ABC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -117,6 +123,7 @@ Global
 		{AB2BFB53-204E-4BAB-97FB-0641F2AD3D74} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{53849D77-E5E3-4558-A7E9-3E12A2A20C90} = {242DA602-E719-47BA-BEE1-2E002283AD50}
 		{A352E47B-E2B1-4024-A1EA-D0DBD5C81AD1} = {53849D77-E5E3-4558-A7E9-3E12A2A20C90}
+		{5557F16F-7DB0-4DF3-A584-2D16F9586ABC} = {53849D77-E5E3-4558-A7E9-3E12A2A20C90}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {93F029C1-2028-41D4-B42F-30FEEEDE9F2F}

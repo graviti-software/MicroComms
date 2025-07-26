@@ -46,9 +46,7 @@ while (msg != "exit")
     msg = Console.ReadLine() ?? "";
     if (msg.Equals("exit", StringComparison.OrdinalIgnoreCase))
         break;
-    var resp = await mediator.SendAsync<EchoRequest, EchoResponse>(
-        new EchoRequest(msg)
-    );
+    var resp = await mediator.SendAsync(new EchoRequest(msg));
     Console.WriteLine($"Echoed back: {resp.Message}");
 }
 
