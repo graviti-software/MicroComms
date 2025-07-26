@@ -16,7 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\MicroComms.Core\MicroComms.Core.csproj" />
     <ProjectReference Include="..\MicroComms.Examples.Microservices.Dto\MicroComms.Examples.Microservices.Dto.csproj" />
   </ItemGroup>
 

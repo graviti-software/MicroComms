@@ -20,9 +20,6 @@ public static class DependencyInjectionExtensions
         this IServiceCollection services
     )
     {
-        // For HttpTransport’s HttpClient usage:
-        services.AddHttpClient();
-
         services.AddKeyedSingleton<ISerializer, JsonSerializerAdapter>("json");
         services.AddKeyedSingleton<ISerializer, MessagePackSerializerAdapter>("msgpack");
 
