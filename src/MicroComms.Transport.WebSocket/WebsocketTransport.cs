@@ -22,9 +22,7 @@ public class WebSocketTransport : ITransport, IDisposable
     private readonly CancellationTokenSource _receiverCts = new();
 
     // ➌ Kick off the loop
-#pragma warning disable S4487 // Unread "private" fields should be removed
     private readonly Task _receiverTask;
-#pragma warning restore S4487 // Unread "private" fields should be removed
 
     private bool _disposed;
 
