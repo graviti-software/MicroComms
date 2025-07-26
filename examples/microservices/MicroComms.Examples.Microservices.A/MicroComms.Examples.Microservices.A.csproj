@@ -16,11 +16,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\src\MicroComms.Client\MicroComms.Client.csproj" />
-		<ProjectReference Include="..\..\..\src\MicroComms.Core\MicroComms.Core.csproj" />
-		<ProjectReference Include="..\..\..\src\MicroComms.Serialization\MicroComms.Serialization.csproj" />
-		<ProjectReference Include="..\..\..\src\MicroComms.Server\MicroComms.Server.csproj" />
-		<ProjectReference Include="..\..\..\src\MicroComms.Transport\MicroComms.Transport.csproj" />
 		<ProjectReference Include="..\MicroComms.Examples.Microservices.Dto\MicroComms.Examples.Microservices.Dto.csproj" />
 	</ItemGroup>
 
